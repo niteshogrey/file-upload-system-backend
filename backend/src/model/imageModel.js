@@ -5,6 +5,20 @@ const imageSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  image: {
+    public_id: {
+      type: String,
+      required: true,
+    },
+    url: {
+      type: String,
+      required: true,
+    },
+    secure_url: {
+      type: String,
+      required: true,
+    },
+  },
   orientation: {
     type: String,
     required: true,
