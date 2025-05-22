@@ -1,40 +1,60 @@
 const Image = require("../model/imageModel");
 const cloudinary = require("cloudinary").v2;
 
+const fs = require("fs");
+
 const uploadImage = async (req, res) => {
   try {
     const { orientation } = req.body;
+    const files = req.files;
 
-    if (!["portrait", "landscape"].includes(orientation)) {
-      return res.status(400).json({ message: "Invalid orientation." });
-    }
-    const file = req.file;
-    console.log(file);
-    
-
-    if (!file) {
-      return res.status(400).json({ message: "No file uploaded." });
+    if (!files || files.length === 0) {
+      return res.status(400).json({ message: "No files uploaded." });
     }
 
-    const uploadResult = await cloudinary.uploader.upload(req.file.path, {
-      folder: "file-upload-system",
-    });
+    const orientations = Array.isArray(orientation)
+      ? orientation
+      : new Array(files.length).fill(orientation);
 
-    const image = new Image({
-      fileName: file.filename,
-      image: {
-        url: uploadResult.url,
-        public_id: uploadResult.public_id,
-        secure_url: uploadResult.secure_url,
-      },
-      orientation,
-    });
-    await image.save();
+    const uploadedImages = [];
 
-    res.status(201).json({ message: "Image uploaded successfully!", image });
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
+      const currentOrientation = orientations[i];
+
+      if (!["portrait", "landscape"].includes(currentOrientation)) {
+        return res
+          .status(400)
+          .json({ message: `Invalid orientation for image ${file.originalname}` });
+      }
+
+      const result = await cloudinary.uploader.upload(file.path, {
+        folder: "file-upload-system",
+      });
+
+      const image = new Image({
+        fileName: file.originalname,
+        image: {
+          url: result.url,
+          public_id: result.public_id,
+          secure_url: result.secure_url,
+        },
+        orientation: currentOrientation,
+      });
+
+      await image.save();
+      uploadedImages.push(image);
+
+      // Clean up the local file after upload
+      fs.unlinkSync(file.path);
+    }
+
+    res
+      .status(201)
+      .json({ message: "Images uploaded successfully!", images: uploadedImages });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: "Error uploading image." });
+    res.status(500).json({ message: "Error uploading image(s)." });
   }
 };
 

@@ -19,7 +19,6 @@ const uploadDocuments = async (req, res) => {
 
           return {
             public_id: result.public_id,
-            url: result.secure_url,
             secure_url: result.secure_url,
           };
         } catch (error) {
@@ -39,15 +38,12 @@ const uploadDocuments = async (req, res) => {
       };
     });
 
-    // Save to MongoDB
     const savedDocuments = await Document.insertMany(documents);
 
-    res
-      .status(201)
-      .json({
-        message: "Documents uploaded successfully!",
-        documents: savedDocuments,
-      });
+    res.status(201).json({
+      message: "Documents uploaded successfully!",
+      documents: savedDocuments,
+    });
   } catch (error) {
     console.error("Error uploading documents:", error);
     res.status(500).json({ message: "Error uploading documents." });
@@ -56,7 +52,7 @@ const uploadDocuments = async (req, res) => {
 
 const getDocuments = async (req, res) => {
   try {
-    const documents = await Document.find().sort({ uploadedAt: 1 });
+    const documents = await Document.find().sort({ uploadedAt: -1 });
     res.status(200).json(documents);
   } catch (error) {
     console.error(error);

@@ -26,3 +26,17 @@ yarn-error.log*
 # Environment variables
 .env
 .env.local
+
+
+# Ignore node_modules and other generated folders
+node_modules/
+uploads/
+file-upload-system/
+fileuploadsystem_backend_task/
+fileuploadsystem_task/
+*.zip
+
+# Ignore large files
+*.zip
+*.mp4
+fileuploadsystem_task/
